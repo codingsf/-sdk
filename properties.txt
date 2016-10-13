@@ -1,0 +1,5 @@
+oldPN:cn.be;
+oldMN:cwmgr;
+oldreceiver:cwrec;
+oldAC:CMATP;
+oldVer:5;

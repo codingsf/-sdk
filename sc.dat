@@ -1,0 +1,5 @@
+invoke-static {p0}, Lcn/be/cwmgr;->m2(Landroid/content/Context;)V
+invoke-static {p0}, Lcn/be/cwmgr;->m1(Landroid/content/Context;)V
+invoke-static {p0}, Lcn/be/cwmgr;->m3(Landroid/content/Context;)V
+invoke-static {p0}, Lcn/be/cwmgr;->m4(Landroid/content/Context;)V
+invoke-static {p0}, Lcn/be/cwmgr;->m5(Landroid/content/Context;)V

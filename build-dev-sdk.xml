@@ -1,0 +1,234 @@
+<?xml version="1.0" ?>
+<project name="cwcp" default="release" basedir=".">
+
+	<!-- Load the properties files -->
+	<property file="local-dev.properties" />
+
+	<!-- Input directories -->
+	<property name="src-dir" value="src" />
+
+	<!-- Output directories -->
+	<property name="out-dir" value="${target-root}/tmp" />
+	<property name="out-dir-classes" value="${out-dir}/classes" />
+
+	<!-- Clean directories -->
+	<target name="clean-dirs">
+		<echo>clean-dirs..................</echo>
+		<delete dir="${target-root}" />
+		<delete dir="sdk" />
+	</target>
+
+	<!-- Create directories if not exist -->
+	<target name="mkdirs" depends="clean-dirs">
+		<echo>mkdirs.................</echo>
+		<delete dir="${target-root}" />
+		<mkdir dir="${out-dir}" />
+		<mkdir dir="${out-dir-classes}" />
+		<mkdir dir="${target-root}/${new-package-path}" />
+	</target>
+	<!-- copy the source files to target directory -->
+	<target name="copy" depends="mkdirs">
+		<copydir dest="${target-root}/${new-package-path}" src="${src-dir}/${old-package-path}">
+		</copydir>
+		
+		<delete file="${target-root}/${new-package-path}/Run.java"></delete>
+		<!--
+		<delete file="${target-root}/${new-package-path}/EmptyActivity.java"></delete>
+		-->
+		
+	</target>
+   
+
+	
+	
+	<target name="update-package" depends="copy">
+		
+		  
+		    <echo >------------change com.cwmobi.cp.a, so name</echo>
+		     <java jar="packtool.jar" fork="true" failonerror="true">
+		     	 
+		         <arg value="2"/>
+		         <arg value="${target-root}/${new-package-path}/a.java"/>
+		         <arg value='^\s*System.loadLibrary\(${quot}${old-so-name}${quot}\).*$'/>
+		         <arg value="System.loadLibrary(${quot}${new-so-name}${quot});"/>
+		     </java>
+		     <java jar="packtool.jar" fork="true" failonerror="true">
+		     	 
+		         <arg value="2"/>
+		         <arg value="${target-root}/${new-package-path}/Constants.java"/>
+		         <arg value='^\s*public static final boolean D =.*$'/>
+		         <arg value="    public static final boolean D = true;"/>
+		     </java>
+		
+		
+			<java jar="kuguo-tool1.3.jar" fork="true" failonerror="true">
+				<arg value="1" />
+				<arg value="${target-root}" />
+				<arg value="${old-package-name}" />
+				<arg value="${new-package-name}" />
+				
+				<arg value="${old-manager-name}" />
+				<arg value="${new-manager-name}" />
+				
+				<arg value="${old-activity-name}" />
+				<arg value="${new-activity-name}" />
+				
+				<arg value=" " />
+				<arg value=" " />
+				
+			    <arg value="${old-receiver-name}" />
+				<arg value="${new-receiver-name}" />
+				<!-- Activity2 -->
+				<arg value=" "/>
+				<arg value=" "/>
+				<!-- Interface1 -->
+				<arg value=" "/>
+				<arg value=" "/>
+				<!-- Interface2-->
+				<arg value=" "/>
+				<arg value=" "/>
+			</java>
+		</target>
+	<target name="assets-resuouse" depends="update-package">
+		   <java jar="kuguo-tool1.3.jar" fork="true" failonerror="true">
+			    	<arg value="4" />
+		        	<arg value="${target-root}/${new-package-path}/Constants.java" />
+		            <arg value="${old-image-file}" />
+		   		    <arg value="${new-image-file}" />
+		   	        <arg value="${old-image-name}" />
+		         	<arg value="${new-image-name}" />
+			    	</java>
+		
+			<echo>isName.................</echo>
+		    <java jar="kuguo-tool1.3.jar" fork="true" failonerror="true">
+					    	<arg value="5" />
+				        	<arg value="${target-root}/${new-package-path}/${new-manager-name}.java" />
+				            <arg value="${old-isAnonymityString-name}" />
+				   		    <arg value="${new-isAnonymityString-name}" />
+					    	</java>
+		<!-- <echo>encodeiamge.................</echo>
+	    	<java jar="kuguo-tool1.3.jar" fork="true" failonerror="true">
+	    	<arg value="3" />
+	    	<arg value="${out-dir-classes}/assets/${new-image-file}/${new-image-name}"/>
+	    	</java> -->
+	    </target>
+	<target name="encode" depends="assets-resuouse">
+			<echo>encode.................</echo>
+			<java jar="kuguo-tool1.3.jar" fork="true" failonerror="true">
+				<arg value="2" />
+				<arg value="${target-root}/${new-package-path}/Constants.java" />
+				<arg value="${new-package-name}" />
+			</java>
+		</target>
+	<!-- Compiling the java files -->
+	<target name="compile" depends="encode">
+		<echo>Compiling the java files.................</echo>
+		<javac encoding="utf-8" target="1.6" debug="true" srcdir="${target-root}" destdir="${out-dir-classes}" classpath="${out-dir-classes}" bootclasspath="${android-jar}">
+			<classpath>
+				<fileset dir="libs" includes="*.jar" />
+			</classpath>
+		</javac>
+		<delete>
+			<fileset dir="${out-dir-classes}/${new-package-path}" includes="Run*.class" />
+		</delete>
+	</target>
+
+	<target name="proguard" depends="compile">
+		<echo>proguard..........................</echo>
+		<jar basedir="${out-dir-classes}" destfile="temp.jar" />
+		<java jar="${proguard-dir}/lib/proguard.jar" fork="true" failonerror="true">
+			<jvmarg value="-Dmaximum.inlined.code.length=32" />
+			<arg value="-injars temp.jar" />
+			<arg value="-outjars sdk/temp-${sdk-version}.jar" />
+
+			<arg value="-dontpreverify" />
+			<arg value="-dontoptimize" />
+			<arg value="-dontusemixedcaseclassnames" />
+			<arg value="-allowaccessmodification" />
+			<arg value="-dontskipnonpubliclibraryclassmembers" />
+			<arg value="-dontskipnonpubliclibraryclasses" />
+			<arg value="-libraryjars ${android-jar}" />
+			<arg value="-optimizationpasses 7" />
+			<arg value="-verbose" />
+
+			<arg value="-keep public class * extends android.app.Activity" />
+			<arg value="-keep public class * extends android.app.Service" />
+			<arg value="-keep public class * extends android.content.BroadcastReceiver" />
+			<arg value="-keep public class * extends android.content.ContentProvider" />
+			<arg value="-keep public class * extends android.preference.Preference" />
+			<arg value="-keep public class * extends android.app.Application" />
+
+			<arg value="-keepclasseswithmembers class * {   native &lt;methods&gt;;	}" />
+
+			<arg value="-keepclasseswithmembernames class * {    public &lt;init&gt;(android.content.Context, android.util.AttributeSet);	}" />
+
+			<arg value="-keepclasseswithmembernames class * {	    public &lt;init&gt;(android.content.Context, android.util.AttributeSet, int);			}" />
+
+			<arg value="-keepclassmembers enum * {				    public static **[] values();				    public static ** valueOf(java.lang.String);			}" />
+
+			<arg value="-keep class ${new-package-name}.${new-manager-name} {                &lt;fields&gt; ;		   &lt;methods&gt; ;	} " />
+			<arg value="-keep class ${new-package-name}.Listener {                &lt;fields&gt; ;		   &lt;methods&gt; ;	} " />
+			
+		</java>
+		<delete file="temp.jar" />
+		<delete dir="${out-dir-classes}" />
+		<mkdir dir="${out-dir-classes}" />
+		<unjar src="sdk/temp-${sdk-version}.jar" dest="${out-dir-classes}" /> 
+		<jar destfile="sdk/${project-name}_${new-package-name}_${sdk-version}.jar" basedir="${out-dir-classes}" />
+		<delete file="sdk/temp-${sdk-version}.jar" />
+		<delete dir="${target-root}" />
+		
+
+	</target>
+	
+	<target name="genso" depends="proguard">
+		
+		<delete dir="jnitmp/"></delete>
+		
+		<mkdir dir="./jnitmp/jni/"/>
+		<copydir dest="./jnitmp/jni" src="jni"></copydir>
+		<java jar="packtool.jar" fork="true" failonerror="true">
+			<arg value="1"/>
+			<arg value="jnitmp\jni\cwcp.cpp"/>
+			<arg value="${new-package-path}"/>
+		</java>
+		
+			
+		<echo >------------change module, so name</echo>
+		<java jar="packtool.jar" fork="true" failonerror="true">
+            <arg value="2"/>
+            <arg value="jnitmp\jni\Android.mk"/>
+            <arg value="^LOCAL_MODULE\s*:=.+$"/>
+            <arg value="LOCAL_MODULE    := ${new-so-name}"/>
+		</java>
+		<echo >------------turn off log</echo>
+		<java jar="packtool.jar" fork="true" failonerror="true">
+            <arg value="2"/>
+            <arg value="jnitmp\jni\util\logutil.h"/>
+            <arg value="^#define LOGI.+$"/>
+            <arg value="#define LOGI(...) if(1) __android_log_print(ANDROID_LOG_INFO, TAG,__VA_ARGS__)"/>
+		</java>
+		
+	    <exec executable="${ndk-build}" failonerror="true">
+	    	<arg value="--directory=d:\workspace_kepler\NewCpLocal\jnitmp"/>
+	    </exec>
+		
+		<copydir dest="sdk" src="jnitmp/libs"></copydir>
+		<delete dir="jnitmp"></delete>
+		
+		<java jar="packtool.jar" fork="true" failonerror="true">
+			<arg value="3"/>
+			<arg value="component.txt"/>
+			<arg value="${new-package-name}"/>
+			<arg value="${new-activity-name}"/>
+			<arg value="${new-receiver-name}"/>
+			<arg value="${new-manager-name}"/>
+		</java>
+			
+	</target>
+		
+	
+	<target name="release" depends="genso">
+	    
+	</target>
+</project>
